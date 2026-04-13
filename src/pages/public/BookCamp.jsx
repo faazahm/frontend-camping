@@ -53,6 +53,7 @@ const BookCamp = () => {
   const [visitors, setVisitors] = useState(1);
   const [selectedAddons, setSelectedAddons] = useState({}); // { id: quantity }
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isValidatingQuota, setIsValidatingQuota] = useState(false);
   const [bookingResult, setBookingResult] = useState(null); // Menyimpan hasil POST booking (payment_instructions)
   const [paymentProof, setPaymentProof] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -71,6 +72,61 @@ const BookCamp = () => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }, []);
+
+  const checkCampAvailability = async () => {
+    if (!checkIn || !checkOut || visitors < 1 || !selectedCamp) return true;
+    
+    try {
+      setIsValidatingQuota(true);
+      // Mencoba memanggil endpoint pengecekan ketersediaan (asumsi GET /api/booking/availability atau serupa)
+      const response = await api.get('/api/booking/availability', {
+        params: {
+          campId: selectedCamp.id,
+          startDate: checkIn,
+          endDate: checkOut,
+          peopleCount: visitors
+        }
+      });
+      
+      if (response.data?.status === 'full' || response.data?.available === false) {
+        alert(response.data?.message || `Maaf, kuota untuk tanggal tersebut sudah penuh atau melebihi kapasitas.`);
+        return false;
+      }
+      return true;
+    } catch (err) {
+      // Jika endpoint check-availability belum ada (404), kita coba panggil POST booking dengan flag validate_only
+      if (err.response?.status === 404) {
+        try {
+          await api.post('/api/booking', {
+            campId: selectedCamp.id,
+            startDate: checkIn,
+            endDate: checkOut,
+            peopleCount: visitors,
+            equipments: [],
+            validate_only: true // Flag untuk hanya memvalidasi tanpa menyimpan
+          });
+          return true;
+        } catch (postErr) {
+          const msg = postErr.response?.data?.message || postErr.message || "";
+          // Jika pesan mengandung indikasi kuota penuh
+          if (msg.toLowerCase().includes("penuh") || msg.toLowerCase().includes("kapasitas") || msg.toLowerCase().includes("quota") || postErr.response?.status === 400) {
+            alert(msg || "Maaf, kapasitas camping untuk tanggal tersebut sudah penuh.");
+            return false;
+          }
+          return true; // Lanjut jika error lain (misal token)
+        }
+      } else {
+        const msg = err.response?.data?.message || "";
+        if (msg.toLowerCase().includes("penuh") || msg.toLowerCase().includes("kapasitas") || msg.toLowerCase().includes("quota")) {
+          alert(msg);
+          return false;
+        }
+        return true; 
+      }
+    } finally {
+      setIsValidatingQuota(false);
+    }
+  };
 
   const fetchEquipmentsByDate = async () => {
     if (!checkIn || !checkOut) return;
@@ -277,7 +333,7 @@ const BookCamp = () => {
     });
   };
 
-  const nextStep = () => {
+  const nextStep = async () => {
     // Validasi Step 1: Lokasi
     if (currentStep === 1 && !selectedCamp) {
       alert("Silakan pilih lokasi camping terlebih dahulu.");
@@ -296,6 +352,10 @@ const BookCamp = () => {
         alert("Harap lengkapi tanggal dan jumlah pengunjung.");
         return;
       }
+
+      // Cek Kuota sebelum lanjut ke peralatan
+      const isAvailable = await checkCampAvailability();
+      if (!isAvailable) return;
     }
 
     // Validasi Step 3: Alat (Opsional, tapi pastikan loading selesai)
@@ -723,14 +783,21 @@ const BookCamp = () => {
                                 </button>
                                 <button 
                                     onClick={nextStep}
-                                    disabled={!datesValid || visitors < 1}
+                                    disabled={!datesValid || visitors < 1 || isValidatingQuota}
                                     className={`flex-[2] py-4 rounded-xl font-bold text-white transition-all flex items-center justify-center ${
-                                        datesValid && visitors > 0 
+                                        datesValid && visitors > 0 && !isValidatingQuota
                                         ? 'bg-[#FF7F50] hover:bg-[#ff6b3d] shadow-lg shadow-orange-500/30' 
                                         : 'bg-gray-200 cursor-not-allowed'
                                     }`}
                                 >
-                                    Lanjut ke Peralatan <ArrowRight size={20} className="ml-2" />
+                                    {isValidatingQuota ? (
+                                        <>
+                                            <Loader2 size={20} className="animate-spin mr-2" />
+                                            Mengecek Kuota...
+                                        </>
+                                    ) : (
+                                        <>Lanjut ke Peralatan <ArrowRight size={20} className="ml-2" /></>
+                                    )}
                                 </button>
                             </div>
                         </div>
