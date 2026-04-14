@@ -84,7 +84,7 @@ const About = () => {
 
               <FadeIn delay={800}>
                 <Link 
-                  to="/camping-list" 
+                  to="/book-camp" 
                   className="inline-flex items-center px-8 py-4 bg-[#FF7F50] text-white font-bold rounded-full hover:bg-[#ff6b3d] transition-all transform hover:scale-105 shadow-lg hover:shadow-orange-500/30 group text-sm"
                 >
                   Booking Tempat Sekarang

@@ -38,7 +38,7 @@ const DashboardLayout = () => {
             Dashboard
           </Link>
           <Link
-            to="/camping-list"
+            to="/book-camp"
             className="flex items-center p-3 text-gray-700 hover:bg-green-50 hover:text-green-600 rounded-lg transition-colors"
           >
             <Tent size={20} className="mr-3" />

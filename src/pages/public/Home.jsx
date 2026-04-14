@@ -74,7 +74,7 @@ const Home = () => {
                 icon: Ticket, 
                 label: 'Easy Booking', 
                 desc: 'Booking tempat camping secara online',
-                link: '/camping-list' 
+                link: '/book-camp' 
               },
               { 
                 icon: Shield, 
