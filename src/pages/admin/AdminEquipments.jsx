@@ -324,12 +324,12 @@ const AdminEquipments = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex items-center justify-end gap-2">
-                        <button onClick={() => handleOpenModal(item)} className="p-2.5 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl transition-all active:scale-95 shadow-sm border border-blue-100 dark:border-blue-800" title="Edit">
-                          <Edit2 size={20} />
+                      <div className="flex items-center justify-end gap-4">
+                        <button onClick={() => handleOpenModal(item)} className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-2xl transition-all shadow-md border-2 border-blue-100 dark:border-blue-900/50 active:scale-90">
+                          <Edit2 size={32} />
                         </button>
-                        <button onClick={() => handleDelete(item.id)} className="p-2.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all active:scale-95 shadow-sm border border-red-100 dark:border-red-800" title="Hapus">
-                          <Trash2 size={20} />
+                        <button onClick={() => handleDelete(item.id)} className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-2xl transition-all shadow-md border-2 border-red-100 dark:border-red-900/50 active:scale-90">
+                          <Trash2 size={32} />
                         </button>
                       </div>
                     </td>
