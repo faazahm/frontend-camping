@@ -111,9 +111,27 @@ const CampingList = () => {
           totalPrice: item.total_price || item.totalPrice,
           nights: calculatedNights || 0,
           visitors: item.people_count || item.visitors || item.peopleCount || 0,
-          addons: item.equipments || item.addons || []
+          addons: item.equipments || item.addons || [],
+          paymentProof: item.payment_proof || item.paymentProof
         };
-      }).sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+      })
+      .filter(item => {
+        // Jangan tampilkan booking PENDING yang belum upload bukti pembayaran
+        if (item.status === 'PENDING') {
+          // Izinkan jika payment_proof sudah ada di data backend
+          if (item.paymentProof) return true;
+          // Izinkan jika ID ada di sessionStorage (baru saja disubmit)
+          try {
+            const submittedIds = JSON.parse(sessionStorage.getItem('submitted_booking_ids') || '[]');
+            const bookingId = item.public_id || item.uuid || String(item.id);
+            if (submittedIds.some(sid => String(sid) === String(bookingId))) return true;
+          } catch (_) {}
+          // Sembunyikan jika tidak keduanya
+          return false;
+        }
+        return true;
+      })
+      .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
 
       setBookings(mappedData);
     } catch (err) {

@@ -16,7 +16,8 @@ import {
   Loader2,
   DollarSign,
   Eye,
-  CreditCard
+  CreditCard,
+  ShoppingBag
 } from 'lucide-react';
 import api from '../../services/api';
 
@@ -41,6 +42,7 @@ const AdminBookings = () => {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [updatingId, setUpdatingId] = useState(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
 
   useEffect(() => {
     fetchBookings();
@@ -96,7 +98,9 @@ const AdminBookings = () => {
           checkOut: item.end_date || item.check_out || item.checkOut,
           totalPrice: item.total_price || item.totalPrice || 0,
           status: item.status || 'PENDING',
-          paymentProof: item.payment_proof || item.paymentProof
+          paymentProof: item.payment_proof || item.paymentProof,
+          // Pastikan data peralatan sewa selalu ada
+          equipments: item.equipments || item.addons || item.booking_equipments || []
         };
       });
 
@@ -186,9 +190,54 @@ const AdminBookings = () => {
     });
   };
 
-  const openDetail = (booking) => {
+  const openDetail = async (booking) => {
     setSelectedBooking(booking);
     setIsModalOpen(true);
+    setLoadingDetail(true);
+
+    // Debug: log semua field dari data list
+    console.log('LIST DATA (cek field equipment):', booking);
+
+    try {
+      // Coba numeric ID dulu (#49), lalu UUID
+      const numericId = booking.id;
+      const uuidId = booking.originalUUID || booking.public_id || booking.uuid;
+      let res;
+      try {
+        res = await api.get(`/api/admin/bookings/${numericId}`);
+      } catch (_) {
+        res = await api.get(`/api/admin/bookings/${uuidId}`);
+      }
+      const detail = res.data?.data || res.data;
+      if (detail && typeof detail === 'object') {
+        console.log('BOOKING DETAIL FROM API:', detail);
+        const equipList = detail.equipments || detail.addons || detail.booking_equipments || detail.items || [];
+        setSelectedBooking(prev => ({
+          ...prev,
+          ...detail,
+          originalUUID: prev.originalUUID,
+          userName: detail.user?.full_name || prev.userName,
+          userEmail: detail.user?.email || prev.userEmail,
+          campName: detail.camp?.name || prev.campName,
+          checkIn: detail.start_date || detail.check_in || prev.checkIn,
+          checkOut: detail.end_date || detail.check_out || prev.checkOut,
+          totalPrice: detail.total_price || prev.totalPrice,
+          paymentProof: detail.payment_proof || prev.paymentProof,
+          equipments: Array.isArray(equipList) ? equipList : []
+        }));
+      }
+    } catch (err) {
+      console.warn('Fetch detail failed:', err.message);
+      // Fallback: pakai data dari list
+      const equipFromList = booking.equipments || booking.booking_equipments || booking.items || booking.addons || [];
+      console.log('Equipment from list fallback:', equipFromList);
+      setSelectedBooking(prev => ({
+        ...prev,
+        equipments: Array.isArray(equipFromList) ? equipFromList : []
+      }));
+    } finally {
+      setLoadingDetail(false);
+    }
   };
 
   const closeDetail = () => {
@@ -358,6 +407,7 @@ const AdminBookings = () => {
 
               {/* Content */}
               <div className="px-8 py-6 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar no-scrollbar">
+
                 {/* Status & Price Summary */}
                 <div className="grid grid-cols-2 gap-3">
                   <div className="p-4 bg-gray-50 dark:bg-gray-800/30 rounded-[24px] border border-gray-100 dark:border-gray-700/50">
@@ -437,6 +487,48 @@ const AdminBookings = () => {
                     </div>
                   </div>
                 </div>
+
+                {/* Peralatan Sewa */}
+                {(() => {
+                  const equipments = selectedBooking.equipments || selectedBooking.addons || [];
+                  if (!Array.isArray(equipments) || equipments.length === 0) return null;
+                  return (
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-xl bg-teal-50 dark:bg-teal-900/20 flex items-center justify-center text-teal-600">
+                          <ShoppingBag size={16} strokeWidth={2.5} />
+                        </div>
+                        <h4 className="font-black text-gray-900 dark:text-white uppercase tracking-tight text-xs">Peralatan Sewa</h4>
+                        <span className="ml-auto text-[9px] font-black bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400 px-2 py-0.5 rounded-full">
+                          {equipments.length} Item
+                        </span>
+                      </div>
+                      <div className="space-y-2">
+                        {equipments.map((item, idx) => {
+                          const name = item.equipment?.name || item.name || `Alat #${idx + 1}`;
+                          const qty = item.quantity || item.qty || 1;
+                          const price = item.total_price || item.total || 0;
+                          return (
+                            <div key={idx} className="flex items-center justify-between bg-gray-50 dark:bg-gray-800/50 rounded-[16px] px-4 py-3 border border-gray-100 dark:border-gray-700/50">
+                              <div className="flex items-center gap-3">
+                                <div className="w-6 h-6 rounded-lg bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center text-teal-600 flex-shrink-0">
+                                  <ShoppingBag size={11} />
+                                </div>
+                                <div>
+                                  <p className="font-black text-gray-900 dark:text-white text-[11px]">{name}</p>
+                                  <p className="text-[9px] text-gray-400 font-bold">x{qty} unit</p>
+                                </div>
+                              </div>
+                              {price > 0 && (
+                                <p className="text-[11px] font-black text-teal-600">{formatPrice(price)}</p>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* Payment Proof */}
                 <div className="space-y-3 pt-2">

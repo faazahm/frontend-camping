@@ -62,8 +62,11 @@ const AdminDashboard = () => {
         .filter(b => revenueStatuses.includes(b.status))
         .reduce((sum, b) => sum + (Number(b.total_price) || 0), 0);
 
+      // Total Booking hanya yang sudah PAID (tidak termasuk PENDING)
+      const paidBookings = allBookings.filter(b => revenueStatuses.includes(b.status));
+
       setStats({
-        total_bookings: allBookings.length,
+        total_bookings: paidBookings.length,
         total_users: allUsers.length,
         total_revenue: totalRevenue,
         growth: 0 // Bisa dikembangkan nanti

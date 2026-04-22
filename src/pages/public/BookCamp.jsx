@@ -54,7 +54,9 @@ const BookCamp = () => {
   const [selectedAddons, setSelectedAddons] = useState({}); // { id: quantity }
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isValidatingQuota, setIsValidatingQuota] = useState(false);
+  const [isCreatingBooking, setIsCreatingBooking] = useState(false);
   const [bookingResult, setBookingResult] = useState(null); // Menyimpan hasil POST booking (payment_instructions)
+  const [pendingBookingId, setPendingBookingId] = useState(null); // Menyimpan ID booking yang baru dibuat
   const [paymentProof, setPaymentProof] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
 
@@ -390,8 +392,8 @@ const BookCamp = () => {
 
   const grandTotal = ticketPrice + addonsTotal;
 
-  // Fungsi Gabungan: Buat Booking + Upload Bukti (Agar tidak muncul di history sebelum bayar)
-  const handleFinalSubmit = async () => {
+  // STEP 1: Buat Booking & Dapat Payment Instructions (Panggil saat "Lanjut ke Pembayaran")
+  const handleCreateBooking = async () => {
     const token = localStorage.getItem('token');
     if (!token) {
       alert("Silakan login terlebih dahulu untuk melakukan booking.");
@@ -404,15 +406,9 @@ const BookCamp = () => {
       return;
     }
 
-    if (!paymentProof) {
-      alert("Harap unggah bukti pembayaran terlebih dahulu.");
-      return;
-    }
-
     try {
-      setIsUploading(true);
+      setIsCreatingBooking(true);
       
-      // 1. Buat Booking Terlebih Dahulu
       const bookingEquipments = Object.entries(selectedAddons)
         .map(([id, quantity]) => {
           const item = equipments.find(e => String(e.id) === String(id));
@@ -433,27 +429,74 @@ const BookCamp = () => {
         equipments: bookingEquipments
       };
 
-      console.log('DEBUG: Creating booking...', bookingPayload);
+      console.log('DEBUG: Creating booking for payment instructions...', bookingPayload);
       const bookingResponse = await api.post('/api/booking', bookingPayload);
+      console.log('DEBUG: Booking response:', bookingResponse.data);
       
-      // Ambil ID dari berbagai kemungkinan struktur response
-      const newBookingId = bookingResponse.data?.data?.id || bookingResponse.data?.id;
+      // Ambil data dari response backend
+      const responseData = bookingResponse.data?.data || bookingResponse.data;
+      const newBookingId = responseData?.id;
+      const paymentInstructions = responseData?.payment_instructions;
 
       if (!newBookingId) {
         console.error('Full response:', bookingResponse.data);
         throw new Error("Gagal mendapatkan ID booking dari server.");
       }
 
-      // 2. Langsung Upload Bukti Pembayaran ke ID yang baru dibuat
+      // Simpan ke state untuk ditampilkan di Step 5
+      setPendingBookingId(newBookingId);
+      setBookingResult(paymentInstructions || responseData);
+
+      // Lanjut ke Step 5
+      setCurrentStep(5);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err) {
+      console.error('Create booking failed:', err);
+      alert(err.response?.data?.message || err.message || "Terjadi kesalahan saat memproses booking.");
+    } finally {
+      setIsCreatingBooking(false);
+    }
+  };
+
+  // STEP 2: Upload Bukti Pembayaran (Panggil saat "Kirim Bukti Bayar")
+  const handleFinalSubmit = async () => {
+    if (!paymentProof) {
+      alert("Harap unggah bukti pembayaran terlebih dahulu.");
+      return;
+    }
+
+    if (!pendingBookingId) {
+      alert("Data booking tidak ditemukan. Silakan ulangi dari langkah 1.");
+      return;
+    }
+
+    try {
+      setIsUploading(true);
+      
       const formData = new FormData();
       formData.append('payment_proof', paymentProof);
 
-      console.log('DEBUG: Uploading proof for booking ID:', newBookingId);
-      await api.post(`/api/booking/${newBookingId}/pay`, formData, {
+      console.log('DEBUG: Uploading proof for booking ID:', pendingBookingId);
+      await api.post(`/api/booking/${pendingBookingId}/pay`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 
       alert("Pemesanan dan pembayaran berhasil dikirim. Menunggu verifikasi admin.");
+      
+      // Bersihkan state
+      setPendingBookingId(null);
+      setBookingResult(null);
+      setPaymentProof(null);
+      
+      // Tandai booking ini sudah disubmit bukti bayar di sessionStorage
+      try {
+        const submittedIds = JSON.parse(sessionStorage.getItem('submitted_booking_ids') || '[]');
+        if (!submittedIds.includes(pendingBookingId)) {
+          submittedIds.push(pendingBookingId);
+          sessionStorage.setItem('submitted_booking_ids', JSON.stringify(submittedIds));
+        }
+      } catch (_) {}
+
       navigate('/dashboard');
     } catch (err) {
       console.error('Final submission failed:', err);
@@ -526,35 +569,44 @@ const BookCamp = () => {
                   <div className="bg-white dark:bg-gray-800 rounded-[40px] overflow-hidden shadow-2xl border border-gray-50 dark:border-gray-700">
                     <div className="bg-[#FF7F50] p-10 text-white text-center">
                       <h2 className="text-3xl font-black mb-2">Instruksi Pembayaran</h2>
-                      <p className="text-white/80 font-medium">Transfer via DANA</p>
+                      <p className="text-white/80 font-medium">Silakan selesaikan pembayaran Anda</p>
                     </div>
                     
                     <div className="p-10 space-y-8">
-                      {/* DANA Info Section */}
-                      <div className="flex flex-col items-center justify-center p-8 bg-gray-50 dark:bg-gray-700/50 rounded-[32px] border border-gray-100 dark:border-gray-700">
-                        <div className="w-32 h-32 bg-white dark:bg-gray-800 rounded-3xl shadow-sm flex items-center justify-center mb-6 overflow-hidden border border-gray-50 dark:border-gray-700">
+                      {/* Payment Info from Backend */}
+                      {bookingResult?.qr_url ? (
+                        <div className="flex flex-col items-center justify-center p-6 bg-gray-50 dark:bg-gray-700/50 rounded-[32px] border border-gray-100 dark:border-gray-700">
                           <img 
-                            src={DANA_LOGO_URL} 
-                            alt="DANA Logo" 
-                            className="w-24 h-24 object-contain"
+                            src={bookingResult.qr_url} 
+                            alt="QR Code Pembayaran" 
+                            className="w-48 h-48 object-contain mb-4 rounded-xl shadow-md border border-gray-100 dark:border-gray-700"
                           />
+                          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest text-center">Scan QR Code untuk Pembayaran</p>
                         </div>
-                        <p className="text-xs font-bold text-gray-400 uppercase tracking-[0.2em] mb-2 text-center">Nomor DANA</p>
-                        <h3 className="text-3xl font-black text-gray-900 dark:text-white mb-1 tracking-tight select-all">{DANA_NUMBER}</h3>
-                        <p className="text-sm font-bold text-[#FF7F50] uppercase tracking-wider">{DANA_NAME}</p>
-                        
-                        <div className="mt-6 px-4 py-2 bg-white dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
-                          <p className="text-[10px] text-gray-400 font-bold text-center italic leading-relaxed">
-                            Silakan transfer total tagihan ke nomor di atas.<br/>Simpan bukti transfer untuk diunggah di bawah.
+                      ) : (
+                        <div className="flex flex-col items-center justify-center p-8 bg-gray-50 dark:bg-gray-700/50 rounded-[32px] border border-gray-100 dark:border-gray-700">
+                          <div className="w-32 h-32 bg-white dark:bg-gray-800 rounded-3xl shadow-sm flex items-center justify-center mb-6 overflow-hidden border border-gray-50 dark:border-gray-700">
+                            <img 
+                              src={DANA_LOGO_URL} 
+                              alt="DANA Logo" 
+                              className="w-24 h-24 object-contain"
+                            />
+                          </div>
+                          <p className="text-xs font-bold text-gray-400 uppercase tracking-[0.2em] mb-2 text-center">Nomor DANA</p>
+                          <h3 className="text-3xl font-black text-gray-900 dark:text-white mb-1 tracking-tight select-all">
+                            {bookingResult?.account_number || DANA_NUMBER}
+                          </h3>
+                          <p className="text-sm font-bold text-[#FF7F50] uppercase tracking-wider">
+                            {bookingResult?.account_name || DANA_NAME}
                           </p>
                         </div>
-                      </div>
+                      )}
 
-                      {/* Amount Summary */}
+                      {/* Amount Summary - from Backend */}
                       <div className="text-center space-y-2">
                         <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Total Tagihan</p>
                         <p className="text-4xl font-black text-[#FF7F50]">
-                          Rp {grandTotal.toLocaleString('id-ID')}
+                          Rp {(bookingResult?.total_price || grandTotal).toLocaleString('id-ID')}
                         </p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">Harap transfer sesuai nominal di atas.</p>
                       </div>
@@ -1010,10 +1062,18 @@ const BookCamp = () => {
                                     Kembali
                                 </button>
                                 <button 
-                                    onClick={() => setCurrentStep(5)}
-                                    className="flex-1 py-4 bg-[#FF7F50] hover:bg-[#ff6b3d] text-white rounded-xl font-bold text-center shadow-lg shadow-orange-500/30 transition-all flex items-center justify-center gap-2"
+                                    onClick={handleCreateBooking}
+                                    disabled={isCreatingBooking}
+                                    className="flex-1 py-4 bg-[#FF7F50] hover:bg-[#ff6b3d] text-white rounded-xl font-bold text-center shadow-lg shadow-orange-500/30 transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                                 >
-                                    Lanjut ke Pembayaran <ArrowRight size={20} />
+                                    {isCreatingBooking ? (
+                                        <>
+                                            <Loader2 size={20} className="animate-spin" />
+                                            Memproses...
+                                        </>
+                                    ) : (
+                                        <>Lanjut ke Pembayaran <ArrowRight size={20} /></>
+                                    )}
                                 </button>
                             </div>
                         </div>
