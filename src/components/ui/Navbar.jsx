@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, LogIn, Sun, Moon, Monitor, Tent, User, LogOut, Settings, LayoutDashboard } from 'lucide-react';
+import api from '../../services/api';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -131,15 +132,31 @@ const Navbar = () => {
     };
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    setUser({});
-    setIsOpen(false);
-    setIsProfileOpen(false);
-    // Notify other components if needed
-    window.dispatchEvent(new Event('userUpdated'));
-    navigate('/');
+  const handleLogout = async () => {
+    try {
+      // 1. Ambil token sebelum dihapus
+      const token = localStorage.getItem('token');
+      
+      if (token) {
+        // 2. Panggil API logout (mencoba endpoint /api/auth/logout yang lebih umum)
+        await api.post('/api/auth/logout').catch(() => {
+          // Fallback jika tanpa /api gagal
+          return api.post('/auth/logout');
+        });
+        console.log('Logout berhasil di sisi server');
+      }
+    } catch (error) {
+      console.error('Logout API error:', error);
+    } finally {
+      // 3. Apapun yang terjadi, hapus data di sisi client
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      setUser({});
+      setIsOpen(false);
+      setIsProfileOpen(false);
+      window.dispatchEvent(new Event('userUpdated'));
+      navigate('/');
+    }
   };
 
   const getRole = (userData) => {

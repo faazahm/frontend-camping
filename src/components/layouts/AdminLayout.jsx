@@ -16,6 +16,7 @@ import {
   MessageSquare,
   BarChart3
 } from 'lucide-react';
+import api from '../../services/api';
 
 const AdminLayout = () => {
   console.log('AdminLayout rendering...');
@@ -34,11 +35,22 @@ const AdminLayout = () => {
     console.error('Error parsing user from localStorage:', e);
   }
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    window.dispatchEvent(new Event('userUpdated'));
-    navigate('/');
+  const handleLogout = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (token) {
+        await api.post('/api/auth/logout').catch(() => {
+          return api.post('/auth/logout');
+        });
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.dispatchEvent(new Event('userUpdated'));
+      navigate('/');
+    }
   };
 
   const navItems = [
