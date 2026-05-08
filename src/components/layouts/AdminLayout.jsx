@@ -20,7 +20,7 @@ import api from '../../services/api';
 
 const AdminLayout = () => {
   console.log('AdminLayout rendering...');
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(window.innerWidth >= 1024);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -66,6 +66,14 @@ const AdminLayout = () => {
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-950 overflow-hidden font-sans">
+      {/* Mobile Backdrop Overlay - closes sidebar when clicked */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
       <aside
         className={`fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 transform transition-transform duration-300 ease-in-out ${
@@ -97,6 +105,7 @@ const AdminLayout = () => {
               <Link
                 key={item.path}
                 to={item.path}
+                onClick={() => { if (window.innerWidth < 1024) setIsSidebarOpen(false); }}
                 className={`flex items-center px-4 py-3 rounded-xl transition-all duration-200 group ${
                   location.pathname === item.path
                     ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/30'
