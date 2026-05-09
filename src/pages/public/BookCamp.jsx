@@ -481,22 +481,14 @@ const BookCamp = () => {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 
-      alert("Pemesanan dan pembayaran berhasil dikirim. Menunggu verifikasi admin.");
+      alert("Pemesanan dan bukti pembayaran berhasil dikirim. Silakan tunggu verifikasi dari admin.");
       
       // Bersihkan state
       setPendingBookingId(null);
       setBookingResult(null);
       setPaymentProof(null);
-      
-      // Tandai booking ini sudah disubmit bukti bayar di sessionStorage
-      try {
-        const submittedIds = JSON.parse(sessionStorage.getItem('submitted_booking_ids') || '[]');
-        if (!submittedIds.includes(pendingBookingId)) {
-          submittedIds.push(pendingBookingId);
-          sessionStorage.setItem('submitted_booking_ids', JSON.stringify(submittedIds));
-        }
-      } catch (_) {}
 
+      // Arahkan ke halaman booking user
       navigate('/dashboard');
     } catch (err) {
       console.error('Final submission failed:', err);

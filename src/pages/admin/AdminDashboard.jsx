@@ -47,7 +47,6 @@ const AdminDashboard = () => {
     try {
       console.log('Fetching admin stats...');
       
-      // Ambil data bookings dan users untuk kalkulasi manual jika endpoint stats belum optimal
       const [bookingsRes, usersRes] = await Promise.all([
         api.get('/api/admin/bookings'),
         api.get('/api/admin/users')
@@ -56,20 +55,29 @@ const AdminDashboard = () => {
       const allBookings = bookingsRes.data?.data || bookingsRes.data || [];
       const allUsers = usersRes.data?.data || usersRes.data || [];
 
+      // PERBAIKAN BUG: Filter booking PENDING yang belum upload bukti pembayaran.
+      // Statistik hanya menghitung booking yang user-nya sudah melengkapi pembayaran.
+      const validBookings = (Array.isArray(allBookings) ? allBookings : []).filter(item => {
+        if (item.status === 'PENDING') {
+          return !!(item.payment_proof || item.paymentProof);
+        }
+        return true;
+      });
+
       // Kalkulasi Pendapatan (Hanya yang statusnya PAID, CHECK_IN, atau CHECK_OUT)
       const revenueStatuses = ['PAID', 'CHECK_IN', 'CHECK_OUT', 'CHECKOUT'];
-      const totalRevenue = allBookings
+      const totalRevenue = validBookings
         .filter(b => revenueStatuses.includes(b.status))
         .reduce((sum, b) => sum + (Number(b.total_price) || 0), 0);
 
       // Total Booking hanya yang sudah PAID (tidak termasuk PENDING)
-      const paidBookings = allBookings.filter(b => revenueStatuses.includes(b.status));
+      const paidBookings = validBookings.filter(b => revenueStatuses.includes(b.status));
 
       setStats({
         total_bookings: paidBookings.length,
         total_users: allUsers.length,
         total_revenue: totalRevenue,
-        growth: 0 // Bisa dikembangkan nanti
+        growth: 0
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -84,12 +92,19 @@ const AdminDashboard = () => {
       const response = await api.get('/api/admin/bookings', { params: { limit: 5 } });
       let data = response.data?.data || response.data || [];
       
-      // Sort manual untuk memastikan yang terbaru di atas
       if (Array.isArray(data)) {
-        data = data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 5);
+        // PERBAIKAN BUG: Filter booking PENDING tanpa bukti bayar
+        data = data
+          .filter(item => {
+            if (item.status === 'PENDING') {
+              return !!(item.payment_proof || item.paymentProof);
+            }
+            return true;
+          })
+          .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+          .slice(0, 5);
       }
       
-      // Map data untuk memastikan email dan nama muncul (konsisten dengan AdminBookings)
       const mappedData = data.map(item => ({
         ...item,
         displayEmail: item.user?.email || item.userEmail || item.email || `User #${item.user_id || '?'}`,

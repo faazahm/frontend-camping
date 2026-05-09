@@ -37,22 +37,21 @@ const MyBookings = () => {
       const historyData = historyRes.data?.data || historyRes.data || [];
       
       // Ekstraksi data pending reviews (Ulasan yang ditunggu)
-      // Backend sekarang mengirimkan ARRAY langsung sesuai update terbaru
       const pendingData = pendingRes.data?.data || pendingRes.data || [];
       
       console.log('DEBUG DASHBOARD - DAFTAR PENDING REVIEW (ARRAY):', pendingData);
 
-      // Filter out bookings that are PENDING but have no payment_proof
+      // PERBAIKAN BUG: Hanya tampilkan booking yang sudah upload bukti pembayaran.
+      // Booking dengan status PENDING yang TIDAK memiliki payment_proof disembunyikan,
+      // karena artinya user belum menyelesaikan proses pembayaran.
+      // Booking dengan status VERIFYING, PAID, CHECK_IN, CHECK_OUT, CANCELLED selalu ditampilkan.
       const filteredHistoryData = (Array.isArray(historyData) ? historyData : []).filter(item => {
+        // Jika status PENDING, hanya tampilkan jika sudah ada bukti bayar
         if (item.status === 'PENDING') {
-          if (item.payment_proof || item.paymentProof) return true;
-          try {
-            const submittedIds = JSON.parse(sessionStorage.getItem('submitted_booking_ids') || '[]');
-            const bookingId = item.public_id || item.uuid || String(item.id);
-            if (submittedIds.some(sid => String(sid) === String(bookingId))) return true;
-          } catch (_) {}
-          return false;
+          const hasBukti = !!(item.payment_proof || item.paymentProof);
+          return hasBukti;
         }
+        // Status lainnya (VERIFYING, PAID, CHECK_IN, CHECK_OUT, CANCELLED) selalu tampil
         return true;
       });
 
@@ -103,8 +102,8 @@ const MyBookings = () => {
   const getStatusLabel = (status) => {
     switch (status) {
       case 'PAID': return 'Lunas';
-      case 'PENDING': return 'Menunggu';
-      case 'VERIFYING': return 'Diverifikasi';
+      case 'PENDING': return 'Menunggu Verifikasi';
+      case 'VERIFYING': return 'Sedang Diverifikasi';
       case 'CANCELLED': return 'Dibatalkan';
       case 'CHECK_IN': return 'Check-In';
       case 'CHECK_OUT': 
@@ -117,6 +116,7 @@ const MyBookings = () => {
     switch (status) {
       case 'PAID': return 'bg-green-100 text-green-700';
       case 'PENDING': return 'bg-yellow-100 text-yellow-700';
+      case 'VERIFYING': return 'bg-orange-100 text-orange-700';
       case 'CHECK_IN': return 'bg-blue-100 text-blue-700';
       case 'CHECK_OUT': 
       case 'CHECKOUT': return 'bg-purple-100 text-purple-700';

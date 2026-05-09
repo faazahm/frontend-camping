@@ -38,17 +38,15 @@ const Dashboard = () => {
       const pendingData = pendingRes.data?.data || [];
       const questionsData = pendingRes.data?.questions || [];
 
-      // Filter out bookings that are PENDING but have no payment_proof
+      // PERBAIKAN BUG: Hanya tampilkan booking yang sudah upload bukti pembayaran.
+      // Booking PENDING tanpa payment_proof artinya user belum menyelesaikan pembayaran.
+      // Filter berbasis sessionStorage dihapus karena tidak reliable saat refresh halaman.
       const filteredHistoryData = (Array.isArray(historyData) ? historyData : []).filter(item => {
         if (item.status === 'PENDING') {
-          if (item.payment_proof || item.paymentProof) return true;
-          try {
-            const submittedIds = JSON.parse(sessionStorage.getItem('submitted_booking_ids') || '[]');
-            const bookingId = item.public_id || item.uuid || String(item.id);
-            if (submittedIds.some(sid => String(sid) === String(bookingId))) return true;
-          } catch (_) {}
-          return false;
+          // Hanya tampilkan PENDING jika sudah ada bukti bayar
+          return !!(item.payment_proof || item.paymentProof);
         }
+        // Status lainnya (VERIFYING, PAID, CHECK_IN, CHECK_OUT, CANCELLED) selalu tampil
         return true;
       });
 

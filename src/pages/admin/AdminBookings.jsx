@@ -26,7 +26,8 @@ const getStatusConfig = (status) => {
     'PAID': { label: 'Dibayar', color: 'bg-green-100 text-green-700' },
     'CHECK_IN': { label: 'Check In', color: 'bg-blue-100 text-blue-700' },
     'CHECK_OUT': { label: 'Check Out', color: 'bg-purple-100 text-purple-700' },
-    'PENDING': { label: 'Menunggu', color: 'bg-yellow-100 text-yellow-700' },
+    'PENDING': { label: 'Menunggu Verifikasi', color: 'bg-yellow-100 text-yellow-700' },
+    'VERIFYING': { label: 'Sedang Diverifikasi', color: 'bg-orange-100 text-orange-700' },
     'CANCELLED': { label: 'Dibatalkan', color: 'bg-red-100 text-red-700' }
   };
   return configs[status] || { label: status, color: 'bg-gray-100 text-gray-700' };
@@ -104,8 +105,19 @@ const AdminBookings = () => {
         };
       });
 
+      // PERBAIKAN BUG: Filter booking PENDING yang belum upload bukti pembayaran.
+      // Admin hanya melihat booking yang user-nya sudah menyelesaikan proses pembayaran.
+      // Booking PENDING tanpa payment_proof artinya user belum konfirmasi pembayaran
+      // sehingga tidak perlu ditampilkan ke admin.
+      const validData = mappedData.filter(item => {
+        if (item.status === 'PENDING') {
+          return !!(item.paymentProof);
+        }
+        return true;
+      });
+
       // Apply Status Filtering on Client Side
-      let filteredData = [...mappedData];
+      let filteredData = [...validData];
       if (statusFilter !== 'ALL') {
         filteredData = filteredData.filter(b => b.status === statusFilter);
       }
@@ -282,7 +294,7 @@ const AdminBookings = () => {
         </div>
 
         <div className="flex gap-2 overflow-x-auto pb-2 lg:pb-0 scrollbar-hide no-scrollbar">
-          {['ALL', 'PENDING', 'PAID', 'CHECK_IN', 'CHECK_OUT', 'CANCELLED'].map((status) => (
+          {['ALL', 'PENDING', 'VERIFYING', 'PAID', 'CHECK_IN', 'CHECK_OUT', 'CANCELLED'].map((status) => (
             <button
               key={status}
               onClick={() => setStatusFilter(status)}
