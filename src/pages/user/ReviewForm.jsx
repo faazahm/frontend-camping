@@ -78,7 +78,7 @@ const ReviewForm = () => {
           question_id: parseInt(id),
           score: score
         })),
-        comment: "No comment provided" // Mengirim string default karena field dihapus dari UI
+        comment: comment.trim() || null
       };
 
       await api.post('/api/reviews', payload);
@@ -215,6 +215,23 @@ const ReviewForm = () => {
             </div>
           ))}
 
+
+          {/* Komentar Tambahan */}
+          <div className="bg-white dark:bg-gray-800 p-5 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm space-y-3">
+            <div className="flex items-center gap-2">
+              <MessageSquare size={16} className="text-orange-500" />
+              <label className="text-sm font-black text-gray-800 dark:text-white uppercase tracking-tight">
+                Komentar too
+              </label>
+            </div>
+            <textarea
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              rows={4}
+              placeholder="Ceritakan pengalaman berkemah Anda secara lebih detail..."
+              className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-700 text-sm text-gray-700 dark:text-gray-300 font-medium placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-500 resize-none transition-all"
+            />
+          </div>
 
           {/* Submit Button */}
           <div className="pt-6">

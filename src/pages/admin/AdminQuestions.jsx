@@ -551,19 +551,20 @@ const AdminQuestions = () => {
                     <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 dark:border-gray-800">Tanggal Ulasan</th>
                     <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 dark:border-gray-800">Skor Total</th>
                     <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 dark:border-gray-800">Status Mutu</th>
+                    <th className="px-8 py-5 text-[10px] font-black text-gray-400 uppercase tracking-widest border-b border-gray-100 dark:border-gray-800">Komentar</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
                   {reviewsLoading ? (
                     <tr>
-                      <td colSpan="4" className="py-20 text-center">
+                      <td colSpan="5" className="py-20 text-center">
                         <Loader2 className="animate-spin text-orange-500 mx-auto" size={40} />
                         <p className="mt-4 text-gray-500 font-bold uppercase tracking-widest text-[10px]">Memuat Data...</p>
                       </td>
                     </tr>
                   ) : reviewsError ? (
                     <tr>
-                      <td colSpan="4" className="py-20 text-center">
+                      <td colSpan="5" className="py-20 text-center">
                         <div className="w-16 h-16 bg-red-50 dark:bg-red-900/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
                           <X size={32} className="text-red-500" />
                         </div>
@@ -610,17 +611,26 @@ const AdminQuestions = () => {
                               <span className="text-[10px] font-bold text-gray-400 mb-0.5">/ 100</span>
                             </div>
                           </td>
-                          <td className="px-8 py-5">
-                              <span className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border shadow-sm ${badge.color}`}>
+                          <td className="px-6 py-5">
+                              <span className={`inline-block whitespace-nowrap px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest border shadow-sm ${badge.color}`}>
                                 {badge.label}
                               </span>
+                            </td>
+                            <td className="px-8 py-5 max-w-[260px]">
+                              {review.comment && review.comment !== '-' ? (
+                                <p className="text-[11px] text-gray-600 dark:text-gray-300 font-medium leading-relaxed line-clamp-3" title={review.comment}>
+                                  {review.comment}
+                                </p>
+                              ) : (
+                                <span className="text-[10px] text-gray-300 dark:text-gray-600 italic font-medium">Tidak ada komentar</span>
+                              )}
                             </td>
                           </tr>
                       );
                     })
                   ) : (
                     <tr>
-                      <td colSpan="4" className="py-24 text-center">
+                      <td colSpan="5" className="py-24 text-center">
                         <div className="w-16 h-16 bg-gray-50 dark:bg-gray-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
                           <Star size={32} className="text-gray-200 dark:text-gray-700" />
                         </div>
