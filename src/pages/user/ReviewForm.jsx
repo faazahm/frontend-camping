@@ -221,7 +221,7 @@ const ReviewForm = () => {
             <div className="flex items-center gap-2">
               <MessageSquare size={16} className="text-orange-500" />
               <label className="text-sm font-black text-gray-800 dark:text-white uppercase tracking-tight">
-                Komentar too
+                Komentar
               </label>
             </div>
             <textarea
