@@ -155,7 +155,10 @@ const AdminQuestions = () => {
       // Map data sesuai spesifikasi database Postgres (total_score, user_email, created_at, comment)
       const mappedReviews = reviewList.map((review) => {
         // Log individual review untuk verifikasi field asli
-        console.log('SYNC DB REVIEW ID:', review.id || review.user_id, 'DATA:', review);
+        console.log('SYNC DB REVIEW ID:', review.id || review.user_id, 'SEMUA FIELD:', JSON.stringify(review));
+
+        // Coba semua kemungkinan nama field untuk komentar
+        const rawComment = review.comment ?? review.comments ?? review.user_comment ?? review.review_comment ?? null;
 
         return {
           ...review,
@@ -170,8 +173,8 @@ const AdminQuestions = () => {
           // TANGGAL: Prioritaskan created_at sesuai database Postgres
           createdAt: review.created_at || review.createdAt,
           
-          // KOMENTAR: comment
-          comment: review.comment && review.comment !== 'No comment provided' ? review.comment : '-'
+          // KOMENTAR: tampilkan apa adanya dari DB, hanya null-kan jika memang kosong
+          comment: (rawComment && rawComment.trim() !== '') ? rawComment.trim() : null
         };
       });
 
@@ -617,7 +620,7 @@ const AdminQuestions = () => {
                               </span>
                             </td>
                             <td className="px-8 py-5 max-w-[260px]">
-                              {review.comment && review.comment !== '-' ? (
+                              {review.comment ? (
                                 <p className="text-[11px] text-gray-600 dark:text-gray-300 font-medium leading-relaxed line-clamp-3" title={review.comment}>
                                   {review.comment}
                                 </p>
