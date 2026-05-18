@@ -1,11 +1,15 @@
-import { useState, useEffect, useRef } from 'react';
-import { ArrowRight, MapPin, Star, Shield, Clock, Flame, Ticket, FileText, Fish, Trees, Trash2, VolumeX, Camera, AlertTriangle, ChevronDown } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ArrowRight, MapPin, Star, Shield, Clock, Flame, Ticket, FileText, Fish, Trees, Trash2, VolumeX, Camera, AlertTriangle, ChevronDown, Loader2, MessageSquare } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import potroImg from '../../assets/potro1.png';
 import FadeIn from '../../components/animations/FadeIn';
+import ReviewCard from '../../components/ui/ReviewCard';
+import api from '../../services/api';
 
 const Home = () => {
   const [scrollY, setScrollY] = useState(0);
+  const [reviews, setReviews] = useState([]);
+  const [loadingReviews, setLoadingReviews] = useState(true);
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
@@ -13,12 +17,29 @@ const Home = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  useEffect(() => {
+    fetchReviews();
+  }, []);
+
+  const fetchReviews = async () => {
+    try {
+      setLoadingReviews(true);
+      const res = await api.get('/reviews/public');
+      console.log('Raw API Response:', res);
+      const data = res.data?.data || res.data || [];
+      console.log('Processed Reviews Data:', data);
+      setReviews(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Error fetching reviews:', err);
+      setReviews([]);
+    } finally {
+      setLoadingReviews(false);
+    }
+  };
+
   return (
     <div className="bg-white dark:bg-gray-900 transition-colors duration-300">
-      {/* Hero Section */}
       <section className="relative min-h-[85vh] md:min-h-screen flex flex-col justify-center pt-24 md:pt-0">
-        
-        {/* Background Image Container with Smooth Curves */}
         <div className="absolute inset-0 z-0 overflow-hidden rounded-b-[40px] md:rounded-b-[70px] shadow-2xl">
           <img
             src={potroImg}
@@ -26,11 +47,9 @@ const Home = () => {
             className="w-full h-full object-cover scale-110" 
             style={{ transform: `translateY(${scrollY * 0.5}px) scale(1.1)` }}
           />
-          {/* Enhanced Dark Overlay for better text readability */}
           <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/80"></div>
         </div>
 
-        {/* Hero Content */}
         <div className="relative z-10 text-center px-6 max-w-4xl mx-auto flex flex-col items-center gap-6 md:gap-8"
              style={{ transform: `translateY(${-scrollY * 0.2}px)` }}>
           <div className="space-y-4">
@@ -59,10 +78,8 @@ const Home = () => {
           </FadeIn>
         </div>
 
-        {/* Feature Cards – overlay on desktop, flow on mobile */}
         <div className="relative md:absolute md:bottom-0 md:left-0 md:right-0 z-20 px-4 md:translate-y-1/2 mt-6">
           <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-            {/* Card Items */}
             {[
               { 
                 icon: Trees, 
@@ -109,10 +126,8 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Spacer to accommodate the overlay cards on larger screens */}
       <div className="h-8 sm:h-12 md:h-40 lg:h-80 bg-white dark:bg-gray-900"></div>
 
-      {/* Features Section */}
       <section id="features" className="py-24 bg-white dark:bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -160,7 +175,6 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Camp Rules Section */}
       <section id="rules" className="py-24 bg-white dark:bg-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -171,7 +185,6 @@ const Home = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-            {/* Rule 1 */}
             <FadeIn delay={200} className="h-full">
               <div className="bg-red-50 dark:bg-red-900/10 p-6 rounded-2xl border border-red-100 dark:border-red-900/30 flex items-start hover:shadow-lg hover:-translate-y-1 hover:scale-[1.02] transition-all duration-300 h-full cursor-default">
                 <div className="flex-shrink-0 w-10 h-10 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-full flex items-center justify-center mr-4 font-bold">
@@ -184,7 +197,6 @@ const Home = () => {
               </div>
             </FadeIn>
 
-            {/* Rule 2 */}
             <FadeIn delay={300} className="h-full">
               <div className="bg-orange-50 dark:bg-orange-900/10 p-6 rounded-2xl border border-orange-100 dark:border-orange-900/30 flex items-start hover:shadow-lg hover:-translate-y-1 hover:scale-[1.02] transition-all duration-300 h-full cursor-default">
                 <div className="flex-shrink-0 w-10 h-10 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-full flex items-center justify-center mr-4 font-bold">
@@ -197,7 +209,6 @@ const Home = () => {
               </div>
             </FadeIn>
 
-            {/* Rule 3 */}
             <FadeIn delay={400} className="h-full">
               <div className="bg-yellow-50 dark:bg-yellow-900/10 p-6 rounded-2xl border border-yellow-100 dark:border-yellow-900/30 flex items-start hover:shadow-lg hover:-translate-y-1 hover:scale-[1.02] transition-all duration-300 h-full cursor-default">
                 <div className="flex-shrink-0 w-10 h-10 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400 rounded-full flex items-center justify-center mr-4 font-bold">
@@ -210,7 +221,6 @@ const Home = () => {
               </div>
             </FadeIn>
 
-            {/* Rule 4 */}
             <FadeIn delay={500} className="h-full">
               <div className="bg-green-50 dark:bg-green-900/10 p-6 rounded-2xl border border-green-100 dark:border-green-900/30 flex items-start hover:shadow-lg hover:-translate-y-1 hover:scale-[1.02] transition-all duration-300 h-full cursor-default">
                 <div className="flex-shrink-0 w-10 h-10 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-full flex items-center justify-center mr-4 font-bold">
@@ -223,7 +233,6 @@ const Home = () => {
               </div>
             </FadeIn>
 
-            {/* Rule 5 */}
             <FadeIn delay={600} className="h-full">
               <div className="bg-blue-50 dark:bg-blue-900/10 p-6 rounded-2xl border border-blue-100 dark:border-blue-900/30 flex items-start hover:shadow-lg hover:-translate-y-1 hover:scale-[1.02] transition-all duration-300 h-full cursor-default">
                 <div className="flex-shrink-0 w-10 h-10 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mr-4 font-bold">
@@ -236,7 +245,6 @@ const Home = () => {
               </div>
             </FadeIn>
 
-            {/* Rule 6 */}
             <FadeIn delay={700} className="h-full">
               <div className="bg-purple-50 dark:bg-purple-900/10 p-6 rounded-2xl border border-purple-100 dark:border-purple-900/30 flex items-start hover:shadow-lg hover:-translate-y-1 hover:scale-[1.02] transition-all duration-300 h-full cursor-default">
                 <div className="flex-shrink-0 w-10 h-10 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-full flex items-center justify-center mr-4 font-bold">
@@ -252,6 +260,38 @@ const Home = () => {
         </div>
       </section>
 
+      <section id="testimonials" className="py-24 bg-white dark:bg-gray-900">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">Apa Kata Mereka?</h2>
+            <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto text-lg">
+              Pengalaman nyata dari para camper yang sudah berkunjung ke Potrobayan River Camp.
+            </p>
+          </div>
+
+          {loadingReviews ? (
+            <div className="flex justify-center py-16">
+              <Loader2 className="w-12 h-12 text-orange-500 animate-spin" />
+            </div>
+          ) : reviews.length > 0 ? (
+            <div className="relative overflow-hidden py-4">
+              <div className="flex gap-6 animate-marquee">
+                {[...reviews.slice(0, 10), ...reviews.slice(0, 10)].map((review, index) => (
+                  <div key={`${review.id || index}-${index}`} className="flex-shrink-0 w-80 md:w-96">
+                    <ReviewCard review={review} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-3xl p-12 text-center border border-gray-100 dark:border-gray-700 shadow-sm">
+              <MessageSquare className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Belum Ada Ulasan</h3>
+              <p className="text-gray-500">Jadilah yang pertama memberikan ulasan tentang pengalaman campingmu!</p>
+            </div>
+          )}
+        </div>
+      </section>
     </div>
   );
 };

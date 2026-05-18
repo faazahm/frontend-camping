@@ -174,7 +174,6 @@ const Login = () => {
           <GoogleLogin
             onSuccess={handleGoogleSuccess}
             onError={handleGoogleError}
-            useOneTap
             theme="outline"
             shape="pill"
             size="large"
