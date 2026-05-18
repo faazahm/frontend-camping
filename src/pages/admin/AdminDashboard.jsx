@@ -24,7 +24,7 @@ const AdminDashboard = () => {
   useEffect(() => {
     const checkIdentity = async () => {
       try {
-        const res = await api.get('/api/profile');
+        const res = await api.get('/profile');
         const user = res.data?.data || res.data;
         const serverRole = String(user.role || '').toLowerCase().trim();
         
@@ -48,8 +48,8 @@ const AdminDashboard = () => {
       console.log('Fetching admin stats...');
       
       const [bookingsRes, usersRes] = await Promise.all([
-        api.get('/api/admin/bookings'),
-        api.get('/api/admin/users')
+        api.get('/admin/bookings'),
+        api.get('/admin/users')
       ]);
 
       const allBookings = bookingsRes.data?.data || bookingsRes.data || [];
@@ -89,7 +89,7 @@ const AdminDashboard = () => {
   const fetchRecentBookings = async () => {
     try {
       console.log('Fetching recent bookings for dashboard...');
-      const response = await api.get('/api/admin/bookings', { params: { limit: 5 } });
+      const response = await api.get('/admin/bookings', { params: { limit: 5 } });
       let data = response.data?.data || response.data || [];
       
       if (Array.isArray(data)) {
@@ -119,8 +119,8 @@ const AdminDashboard = () => {
 
   const handleUpdateStatus = async (id, newStatus) => {
     try {
-      // Sesuai instruksi: PUT ke /api/admin/bookings/{id}/status dengan UUID
-      const response = await api.put(`/api/admin/bookings/${id}/status`, { 
+      // Sesuai instruksi: PUT ke /admin/bookings/{id}/status dengan UUID
+      const response = await api.put(`/admin/bookings/${id}/status`, { 
         status: newStatus 
       });
       

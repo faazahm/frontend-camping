@@ -20,7 +20,7 @@ const ReviewForm = () => {
   const fetchQuestions = async () => {
     try {
       setLoading(true);
-      const res = await api.get('/api/reviews/questions');
+      const res = await api.get('/reviews/questions');
       const data = res.data?.data || res.data || [];
       setQuestions(data);
       
@@ -81,7 +81,7 @@ const ReviewForm = () => {
         comment: comment.trim() || null
       };
 
-      await api.post('/api/reviews', payload);
+      await api.post('/reviews', payload);
       alert('Terima kasih! Ulasan Anda telah berhasil dikirim.');
       
       // Menggunakan state untuk memberi tahu dashboard agar refresh data

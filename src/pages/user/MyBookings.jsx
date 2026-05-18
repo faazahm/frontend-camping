@@ -29,8 +29,8 @@ const MyBookings = () => {
     setLoading(true);
     try {
       const [historyRes, pendingRes] = await Promise.all([
-        api.get('/api/dashboard/history'),
-        api.get('/api/reviews/pending').catch(() => ({ data: [] }))
+        api.get('/dashboard/history'),
+        api.get('/reviews/pending').catch(() => ({ data: [] }))
       ]);
 
       // Ekstraksi data history (booking)

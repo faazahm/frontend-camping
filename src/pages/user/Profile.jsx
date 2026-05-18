@@ -39,7 +39,7 @@ const Profile = () => {
     const fetchProfile = async () => {
       try {
         // Coba ambil data profil terbaru dari server saat halaman dimuat
-        const response = await api.get('/api/profile');
+        const response = await api.get('/profile');
         console.log('DEBUG: Response Profile dari Server:', response.data);
         
         if (response.data.success || response.status === 200) {
@@ -126,7 +126,7 @@ const Profile = () => {
       });
 
       // Backend sudah mendukung PUT & POST untuk Profile
-      const response = await api.put('/api/profile', data, {
+      const response = await api.put('/profile', data, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

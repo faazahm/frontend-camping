@@ -81,7 +81,7 @@ const AdminQuestions = () => {
       setError(null);
       
       const endpoints = [
-        '/api/admin/questions',
+        '/admin/questions',
         '/admin/questions'
       ];
 
@@ -116,7 +116,7 @@ const AdminQuestions = () => {
       setReviewsError(null);
       
       const endpoints = [
-        '/api/admin/reviews',
+        '/admin/reviews',
         '/admin/reviews'
       ];
 
@@ -198,7 +198,7 @@ const AdminQuestions = () => {
       setSummaryLoading(true);
       
       const endpoints = [
-        '/api/admin/reviews/summary',
+        '/admin/reviews/summary',
         '/admin/reviews/summary'
       ];
 
@@ -230,7 +230,7 @@ const AdminQuestions = () => {
       setConclusionLoading(true);
       
       const endpoints = [
-        '/api/admin/reviews/conclusion',
+        '/admin/reviews/conclusion',
         '/admin/reviews/conclusion'
       ];
 
@@ -312,9 +312,9 @@ const AdminQuestions = () => {
 
     try {
       if (currentQuestion) {
-        await api.put(`/api/admin/questions/${currentQuestion.id || currentQuestion.uuid}`, payload);
+        await api.put(`/admin/questions/${currentQuestion.id || currentQuestion.uuid}`, payload);
       } else {
-        await api.post('/api/admin/questions', payload);
+        await api.post('/admin/questions', payload);
       }
 
       alert('Pertanyaan berhasil disimpan!');
@@ -332,7 +332,7 @@ const AdminQuestions = () => {
   const handleDelete = async (id) => {
     if (!window.confirm('Apakah Anda yakin ingin menghapus pertanyaan ini?')) return;
     try {
-      await api.delete(`/api/admin/questions/${id}`);
+      await api.delete(`/admin/questions/${id}`);
       alert('Pertanyaan berhasil dihapus.');
       fetchQuestions();
     } catch (err) {

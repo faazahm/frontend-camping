@@ -37,7 +37,7 @@ const AdminCamps = () => {
   useEffect(() => {
     const checkIdentity = async () => {
       try {
-        const res = await api.get('/api/profile');
+        const res = await api.get('/profile');
         const user = res.data?.data || res.data;
         const serverRole = String(user.role || '').toLowerCase().trim();
         console.log('IDENTITAS ADMIN CAMPS:', user);
@@ -58,11 +58,11 @@ const AdminCamps = () => {
       setError(null);
       
       let currentResponse;
-      // Berdasarkan instruksi terbaru: Gunakan /api/admin/camps
+      // Berdasarkan instruksi terbaru: Gunakan /admin/camps
       const endpoints = [
-        '/api/admin/camps',
         '/admin/camps',
-        '/api/camps',
+        '/admin/camps',
+        '/camps',
         '/camps'
       ];
 
@@ -221,7 +221,7 @@ const AdminCamps = () => {
       if (currentCamp) {
         // KEMBALI KE PUT: Berdasarkan Swagger, method yang benar adalah PUT.
         // Internal Server Error (500) sebelumnya mungkin terjadi karena format data atau field yang tidak pas.
-        const updateUrl = `/api/admin/camps/${campId}`;
+        const updateUrl = `/admin/camps/${campId}`;
         
         try {
           console.log(`Mencoba Update (PUT) ke: ${updateUrl}`);
@@ -229,7 +229,7 @@ const AdminCamps = () => {
             headers: { 'Content-Type': 'multipart/form-data' }
           });
         } catch (error) {
-          // Jika /api/admin/ gagal dengan 404, coba tanpa /api
+          // Jika /admin/ gagal dengan 404, coba tanpa /api
           if (error.response?.status === 404) {
             console.warn("Mencoba fallback tanpa /api...");
             response = await api.put(`/admin/camps/${campId}`, data, {
@@ -241,7 +241,7 @@ const AdminCamps = () => {
         }
       } else {
         // Create logic
-        const primaryCreateUrl = `/api/admin/camps`;
+        const primaryCreateUrl = `/admin/camps`;
         const secondaryCreateUrl = `/admin/camps`;
         
         try {
@@ -300,9 +300,9 @@ const AdminCamps = () => {
       setCamps(prev => prev.filter(c => c.id !== id));
       
       const deleteEndpoints = [
-        `/api/admin/camps/${id}`,
         `/admin/camps/${id}`,
-        `/api/camps/${id}`,
+        `/admin/camps/${id}`,
+        `/camps/${id}`,
         `/camps/${id}`
       ];
 

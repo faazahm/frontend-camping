@@ -41,7 +41,7 @@ const AdminReports = () => {
     try {
       // Sesuai dokumentasi Swagger: GET /admin/reports/download?month=X&year=Y
       // Menggunakan responseType: 'blob' agar bisa mendownload file
-      const response = await api.get('/api/admin/reports/download', {
+      const response = await api.get('/admin/reports/download', {
         params: { month, year },
         responseType: 'blob'
       });

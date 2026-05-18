@@ -12,7 +12,8 @@ const STATUS_OPTIONS = [
   { value: 'CANCELLED', label: 'CANCELLED' },
 ];
 
-const getStatusLabel = (status) => {
+const getStatusLabel = (status, hasPaymentProof = false) => {
+  if (status === 'PENDING' && hasPaymentProof) return 'Menunggu Verifikasi';
   if (status === 'CHECKOUT' || status === 'CHECK_OUT') return 'Selesai';
   const hit = STATUS_OPTIONS.find(s => s.value === status);
   return hit ? hit.label : status;
@@ -66,11 +67,11 @@ const CampingList = () => {
       
       // Fetch both history and pending reviews
       const [historyRes, pendingRes] = await Promise.all([
-        api.get('/api/dashboard/history', { params: statusFilter !== 'ALL' ? { status: statusFilter } : {} }).catch(err => {
+        api.get('/dashboard/history', { params: statusFilter !== 'ALL' ? { status: statusFilter } : {} }).catch(err => {
             console.warn('API history fetch failed:', err);
             return { data: { data: [] } };
         }),
-        api.get('/api/reviews/pending').catch(err => {
+        api.get('/reviews/pending').catch(err => {
             console.warn('API pending reviews fetch failed:', err);
             return { data: { data: [], questions: [] } };
         })
@@ -248,7 +249,7 @@ const CampingList = () => {
                   <div className="flex-1 space-y-1">
                     <div className="flex items-center gap-2 mb-1">
                       <span className={`px-2.5 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider ${getStatusClasses(booking.status)}`}>
-                        {getStatusLabel(booking.status)}
+                        {getStatusLabel(booking.status, booking.paymentProof)}
                       </span>
                       <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest bg-gray-50 dark:bg-gray-900 px-2 py-0.5 rounded-lg border border-gray-100 dark:border-gray-800">
                         {booking.public_id || booking.publicId || `#${booking.id?.toString().slice(-6).toUpperCase()}`}

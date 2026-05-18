@@ -25,30 +25,24 @@ const Dashboard = () => {
   const fetchHistory = async () => {
     setLoading(true);
     try {
-      // Fetch history and pending reviews in parallel
+      console.log('Fetching booking history...');
       const [historyRes, pendingRes] = await Promise.all([
-        api.get(`/api/dashboard/history`, { params: statusFilter !== 'ALL' ? { status: statusFilter } : {} }),
-        api.get('/api/reviews/pending').catch(err => {
+        api.get(`/dashboard/history`, { params: statusFilter !== 'ALL' ? { status: statusFilter } : {} }),
+        api.get('/reviews/pending').catch(err => {
           console.warn('Pending reviews fetch failed:', err);
           return { data: { data: [] } };
         })
       ]);
 
+      console.log('History Response:', historyRes.data);
       const historyData = historyRes.data?.data || historyRes.data || [];
+      console.log('History Data:', historyData);
+      
       const pendingData = pendingRes.data?.data || [];
       const questionsData = pendingRes.data?.questions || [];
 
-      // PERBAIKAN BUG: Hanya tampilkan booking yang sudah upload bukti pembayaran.
-      // Booking PENDING tanpa payment_proof artinya user belum menyelesaikan pembayaran.
-      // Filter berbasis sessionStorage dihapus karena tidak reliable saat refresh halaman.
-      const filteredHistoryData = (Array.isArray(historyData) ? historyData : []).filter(item => {
-        if (item.status === 'PENDING') {
-          // Hanya tampilkan PENDING jika sudah ada bukti bayar
-          return !!(item.payment_proof || item.paymentProof);
-        }
-        // Status lainnya (VERIFYING, PAID, CHECK_IN, CHECK_OUT, CANCELLED) selalu tampil
-        return true;
-      });
+      const filteredHistoryData = (Array.isArray(historyData) ? historyData : []);
+      console.log('Filtered History Data:', filteredHistoryData);
 
       setBookings(filteredHistoryData);
       setPendingReviews(pendingData);
@@ -101,7 +95,7 @@ const Dashboard = () => {
         answers: answers
       };
 
-      await api.post('/api/reviews', payload);
+      await api.post('/reviews', payload);
       alert('Terima kasih! Ulasan Anda telah berhasil dikirim.');
       closeReviewModal();
       fetchHistory(); // Refresh to update buttons

@@ -138,8 +138,8 @@ const Navbar = () => {
       const token = localStorage.getItem('token');
       
       if (token) {
-        // 2. Panggil API logout (mencoba endpoint /api/auth/logout yang lebih umum)
-        await api.post('/api/auth/logout').catch(() => {
+        // 2. Panggil API logout (mencoba endpoint /auth/logout yang lebih umum)
+        await api.post('/auth/logout').catch(() => {
           // Fallback jika tanpa /api gagal
           return api.post('/auth/logout');
         });

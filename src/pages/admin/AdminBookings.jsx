@@ -65,7 +65,7 @@ const AdminBookings = () => {
       
       let response;
       try {
-        response = await api.get('/api/admin/bookings', { params });
+        response = await api.get('/admin/bookings', { params });
       } catch (err) {
         response = await api.get('/admin/bookings', { params });
       }
@@ -166,8 +166,8 @@ const AdminBookings = () => {
         throw new Error("ID Booking tidak valid (Bukan format UUID)");
       }
 
-      // Sesuai instruksi: PUT ke /api/admin/bookings/{id}/status
-      const response = await api.put(`/api/admin/bookings/${bookingId}/status`, { 
+      // Sesuai instruksi: PUT ke /admin/bookings/{id}/status
+      const response = await api.put(`/admin/bookings/${bookingId}/status`, { 
         status: newStatus 
       });
 
@@ -216,9 +216,9 @@ const AdminBookings = () => {
       const uuidId = booking.originalUUID || booking.public_id || booking.uuid;
       let res;
       try {
-        res = await api.get(`/api/admin/bookings/${numericId}`);
+        res = await api.get(`/admin/bookings/${numericId}`);
       } catch (_) {
-        res = await api.get(`/api/admin/bookings/${uuidId}`);
+        res = await api.get(`/admin/bookings/${uuidId}`);
       }
       const detail = res.data?.data || res.data;
       if (detail && typeof detail === 'object') {

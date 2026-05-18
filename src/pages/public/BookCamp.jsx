@@ -80,10 +80,8 @@ const BookCamp = () => {
     
     try {
       setIsValidatingQuota(true);
-      // Mencoba memanggil endpoint pengecekan ketersediaan (asumsi GET /api/booking/availability atau serupa)
-      const response = await api.get('/api/booking/availability', {
+      const response = await api.get(`/booking/camps/${selectedCamp.id}/availability`, {
         params: {
-          campId: selectedCamp.id,
           startDate: checkIn,
           endDate: checkOut,
           peopleCount: visitors
@@ -99,7 +97,7 @@ const BookCamp = () => {
       // Jika endpoint check-availability belum ada (404), kita coba panggil POST booking dengan flag validate_only
       if (err.response?.status === 404) {
         try {
-          await api.post('/api/booking', {
+          await api.post('/booking', {
             campId: selectedCamp.id,
             startDate: checkIn,
             endDate: checkOut,
@@ -137,7 +135,7 @@ const BookCamp = () => {
       setLoadingEquips(true);
       console.log(`DEBUG: Fetching equipments for dates ${checkIn} to ${checkOut}`);
       
-      const res = await api.get(`/api/booking/equipments?startDate=${checkIn}&endDate=${checkOut}`);
+      const res = await api.get(`/booking/equipments?startDate=${checkIn}&endDate=${checkOut}`);
       
       let extracted = [];
       if (Array.isArray(res.data)) {
@@ -209,7 +207,7 @@ const BookCamp = () => {
 
       // 1. Fetch Camps menggunakan endpoint publik
       let campsData = [];
-      const publicEndpoints = ['/api/booking/camps', '/api/camps', '/camps'];
+      const publicEndpoints = ['/booking/camps', '/camps', '/camps'];
       
       for (const endpoint of publicEndpoints) {
         try {
@@ -430,7 +428,7 @@ const BookCamp = () => {
       };
 
       console.log('DEBUG: Creating booking for payment instructions...', bookingPayload);
-      const bookingResponse = await api.post('/api/booking', bookingPayload);
+      const bookingResponse = await api.post('/booking', bookingPayload);
       console.log('DEBUG: Booking response:', bookingResponse.data);
       
       // Ambil data dari response backend
@@ -477,7 +475,7 @@ const BookCamp = () => {
       formData.append('payment_proof', paymentProof);
 
       console.log('DEBUG: Uploading proof for booking ID:', pendingBookingId);
-      await api.post(`/api/booking/${pendingBookingId}/pay`, formData, {
+      await api.post(`/booking/${pendingBookingId}/pay`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 

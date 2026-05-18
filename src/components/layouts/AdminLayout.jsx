@@ -39,7 +39,7 @@ const AdminLayout = () => {
     try {
       const token = localStorage.getItem('token');
       if (token) {
-        await api.post('/api/auth/logout').catch(() => {
+        await api.post('/auth/logout').catch(() => {
           return api.post('/auth/logout');
         });
       }

@@ -40,7 +40,7 @@ const AdminEquipments = () => {
       setError(null);
       
       const endpoints = [
-        '/api/admin/equipments',
+        '/admin/equipments',
         '/admin/equipments'
       ];
 
@@ -158,7 +158,7 @@ const AdminEquipments = () => {
       let response;
       if (currentEquipment) {
         // Node.js mendukung PUT murni dengan multipart/form-data
-        const updateUrl = `/api/admin/equipments/${currentEquipment.id}`;
+        const updateUrl = `/admin/equipments/${currentEquipment.id}`;
         
         try {
           response = await api.put(updateUrl, data);
@@ -172,7 +172,7 @@ const AdminEquipments = () => {
       } else {
         // POST request with fallback
         try {
-          response = await api.post('/api/admin/equipments', data);
+          response = await api.post('/admin/equipments', data);
         } catch (err) {
           if (err.response?.status === 404) {
             response = await api.post('/admin/equipments', data);
@@ -202,7 +202,7 @@ const AdminEquipments = () => {
 
     try {
       const endpoints = [
-        `/api/admin/equipments/${id}`,
+        `/admin/equipments/${id}`,
         `/admin/equipments/${id}`
       ];
 

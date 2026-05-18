@@ -38,7 +38,7 @@ const AdminUsers = () => {
       setError(null);
       
       const endpoints = [
-        '/api/admin/users',
+        '/admin/users',
         '/admin/users'
       ];
 
@@ -85,7 +85,7 @@ const AdminUsers = () => {
   const fetchUserDetail = async (id) => {
     try {
       const endpoints = [
-        `/api/admin/users/${id}`,
+        `/admin/users/${id}`,
         `/admin/users/${id}`
       ];
 

@@ -55,8 +55,8 @@ const Login = () => {
     setLoading(true);
     setError('');
     try {
-      // Menggunakan /api/auth/google sesuai pola yang berhasil untuk profile/booking
-      const response = await api.post('/api/auth/google', {
+      // Menggunakan /auth/google sesuai pola yang berhasil untuk profile/booking
+      const response = await api.post('/auth/google', {
         idToken: credentialResponse.credential
       });
 
