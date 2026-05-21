@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, CheckCircle, Lock, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Mail, CheckCircle, Lock, ArrowRight, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import api from '../../services/api';
 
 const ForgotPassword = () => {
@@ -9,6 +9,8 @@ const ForgotPassword = () => {
   const [otp, setOtp] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -160,13 +162,20 @@ const ForgotPassword = () => {
             <Lock size={18} className="text-gray-400" />
           </div>
           <input
-            type="password"
+            type={showPassword ? 'text' : 'password'}
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             required
-            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500 transition-colors"
+            className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500 transition-colors"
             placeholder="••••••••"
           />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+          >
+            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
         </div>
       </div>
       <div>
@@ -176,13 +185,20 @@ const ForgotPassword = () => {
             <Lock size={18} className="text-gray-400" />
           </div>
           <input
-            type="password"
+            type={showConfirmPassword ? 'text' : 'password'}
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
-            className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500 transition-colors"
+            className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-orange-500 focus:border-orange-500 transition-colors"
             placeholder="••••••••"
           />
+          <button
+            type="button"
+            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+            className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+          >
+            {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
         </div>
       </div>
       <button
