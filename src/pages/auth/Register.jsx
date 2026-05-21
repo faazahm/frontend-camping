@@ -181,7 +181,7 @@ const Register = () => {
           >
             {loading ? 'Memproses...' : (
               <>
-                Daftar Sekarang <ArrowRight size={18} className="ml-2" />
+                Daftar<ArrowRight size={18} className="ml-2" />
               </>
             )}
           </button>
