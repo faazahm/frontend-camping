@@ -84,32 +84,27 @@ const Home = () => {
               { 
                 icon: Trees, 
                 label: 'Nature View', 
-                desc: 'Pemandangan sungai & hutan alami',
-                link: '/about' 
+                desc: 'Pemandangan sungai & hutan alami'
               },
               { 
                 icon: Ticket, 
                 label: 'Easy Booking', 
-                desc: 'Booking tempat camping secara online',
-                link: '/book-camp' 
+                desc: 'Booking tempat camping secara online'
               },
               { 
                 icon: Shield, 
                 label: 'Safe & Clean', 
-                desc: 'Lingkungan bersih dan aman',
-                link: '/about' 
+                desc: 'Lingkungan bersih dan aman'
               },
               { 
                 icon: Camera, 
                 label: 'Best Photo Spot', 
-                desc: 'Abadikan momen terbaikmu disini',
-                link: '/about' 
+                desc: 'Abadikan momen terbaikmu disini'
               }
             ].map((item, index) => (
               <FadeIn key={index} delay={800 + (index * 150)} className="h-full">
-                <Link 
-                  to={item.link} 
-                  className="bg-white dark:bg-gray-800 rounded-[30px] p-4 sm:p-5 md:p-6 shadow-xl hover:shadow-2xl flex flex-col items-center justify-center text-center group hover:-translate-y-2 transition-all duration-300 border border-gray-100 dark:border-gray-700 h-full min-h-[160px] sm:min-h-[200px] md:min-h-[240px] relative overflow-hidden"
+                <div 
+                  className="bg-white dark:bg-gray-800 rounded-[30px] p-4 sm:p-5 md:p-6 shadow-xl hover:shadow-2xl flex flex-col items-center justify-center text-center group hover:-translate-y-2 transition-all duration-300 border border-gray-100 dark:border-gray-700 h-full min-h-[160px] sm:min-h-[200px] md:min-h-[240px] relative overflow-hidden cursor-default"
                 >
                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#FF7F50] to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                   <div className="mb-4 p-3.5 bg-orange-50 dark:bg-orange-900/20 rounded-2xl group-hover:bg-[#FF7F50] group-hover:text-white transition-all duration-300 shadow-sm">
@@ -119,7 +114,7 @@ const Home = () => {
                   <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 leading-relaxed max-w-[90%]">
                     {item.desc}
                   </p>
-                </Link>
+                </div>
               </FadeIn>
             ))}
           </div>
