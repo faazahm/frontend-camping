@@ -209,13 +209,13 @@ const AdminUsers = () => {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2 text-gray-600">
-                        <Mail className="w-4 h-4" />
-                        <span className="text-sm">{user.email}</span>
+                        <Mail className="w-4 h-4 shrink-0" />
+                        <span className="text-sm truncate max-w-[200px]">{user.email}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2 text-gray-600">
-                        <Phone className="w-4 h-4" />
+                        <Phone className="w-4 h-4 shrink-0" />
                         <span className="text-sm">{user.phone || '-'}</span>
                       </div>
                     </td>
