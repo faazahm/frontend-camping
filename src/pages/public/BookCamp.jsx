@@ -37,7 +37,7 @@ const diffNights = (checkInYmd, checkOutYmd) => {
   return Math.round(ms / (1000 * 60 * 60 * 24));
 };
 
-const BookCamp = () => {
+const BookCampComponent = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [camps, setCamps] = useState([]);
@@ -59,6 +59,8 @@ const BookCamp = () => {
   const [pendingBookingId, setPendingBookingId] = useState(null); // Menyimpan ID booking yang baru dibuat
   const [paymentProof, setPaymentProof] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [fullDates, setFullDates] = useState([]); // Tanggal-tanggal yang kuota penuh
+  const [loadingFullDates, setLoadingFullDates] = useState(false);
 
   // Detail Pembayaran DANA
   const DANA_NUMBER = "083867128869";
@@ -74,6 +76,74 @@ const BookCamp = () => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }, []);
+
+  // Ambil tanggal yang kuota penuh ketika camp dipilih
+  useEffect(() => {
+    if (selectedCamp?.id) {
+      fetchFullDates(selectedCamp.id);
+    }
+  }, [selectedCamp?.id]);
+
+  const fetchFullDates = async (campId) => {
+    try {
+      setLoadingFullDates(true);
+      // Ambil data 3 bulan ke depan
+      const today = new Date();
+      const threeMonthsLater = new Date();
+      threeMonthsLater.setMonth(threeMonthsLater.getMonth() + 3);
+      const startDate = formatYmdLocal(today);
+      const endDate = formatYmdLocal(threeMonthsLater);
+
+      const res = await api.get(`/booking/availability`, {
+        params: { campId, startDate, endDate }
+      });
+
+      // Coba parse array tanggal penuh dari berbagai format response
+      let dates = [];
+      const data = res.data;
+      if (Array.isArray(data?.fullDates)) dates = data.fullDates;
+      else if (Array.isArray(data?.full_dates)) dates = data.full_dates;
+      else if (Array.isArray(data?.unavailableDates)) dates = data.unavailableDates;
+      else if (Array.isArray(data?.data?.fullDates)) dates = data.data.fullDates;
+      else if (Array.isArray(data?.availability)) {
+        // Jika response punya availability array, cek sisa kuota
+        dates = data.availability
+          .filter(d => d.remaining <= 0)
+          .map(d => d.date);
+      }
+      else if (Array.isArray(data?.data)) {
+        // Jika response berupa array objek dengan status 'full'
+        dates = data.data
+          .filter(d => d.status === 'full' || d.available === false || d.isFull === true || d.remaining <= 0)
+          .map(d => d.date || d.startDate || d.tanggal);
+      }
+
+      // Konversi ke format yyyy-MM-dd
+      const normalizedDates = dates
+        .filter(Boolean)
+        .map(d => {
+          try {
+            const parsed = new Date(d);
+            return formatYmdLocal(parsed);
+          } catch { return null; }
+        })
+        .filter(Boolean);
+
+      setFullDates(normalizedDates);
+    } catch (err) {
+      // Jika endpoint tidak ada atau error, kosongkan saja
+      console.warn('DEBUG: Tidak bisa mengambil data tanggal penuh:', err?.response?.status, err?.message);
+      setFullDates([]);
+    } finally {
+      setLoadingFullDates(false);
+    }
+  };
+
+  // Fungsi untuk mengecek apakah tanggal tertentu kuota penuh
+  const isDateFull = (date) => {
+    const ymd = formatYmdLocal(date);
+    return fullDates.includes(ymd);
+  };
 
   const checkCampAvailability = async () => {
     if (!checkIn || !checkOut || visitors < 1 || !selectedCamp) return true;
@@ -525,7 +595,7 @@ const BookCamp = () => {
                     { step: 1, label: "Lokasi", icon: MapPin },
                     { step: 2, label: "Jadwal", icon: Calendar },
                     { step: 3, label: "Alat", icon: Tent },
-                    { step: 4, label: "Review", icon: Check },
+                    { step: 4, label: "Konfirmasi", icon: Check },
                     { step: 5, label: "Bayar", icon: CreditCard }
                 ].map((item) => (
                     <div key={item.step} className="relative z-10 flex flex-col items-center bg-white dark:bg-gray-800 px-2 md:px-4">
@@ -746,6 +816,19 @@ const BookCamp = () => {
                         </div>
                         
                         <div className="space-y-8">
+                            {/* Keterangan warna tanggal penuh */}
+                            {fullDates.length > 0 && (
+                                <div className="flex items-center gap-2 text-xs text-red-500 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/30 rounded-xl px-4 py-3">
+                                    <span className="inline-block w-3 h-3 rounded-full bg-red-400 shrink-0"></span>
+                                    <span>Tanggal berwarna merah menunjukkan kuota sudah penuh dan tidak dapat dipilih.</span>
+                                </div>
+                            )}
+                            {loadingFullDates && (
+                                <div className="flex items-center gap-2 text-xs text-gray-400 justify-center">
+                                    <Loader2 size={14} className="animate-spin" />
+                                    <span>Mengecek ketersediaan tanggal...</span>
+                                </div>
+                            )}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">
@@ -759,6 +842,12 @@ const BookCamp = () => {
                                             minDate={new Date()}
                                             dateFormat="dd MMMM yyyy"
                                             placeholderText="Pilih tanggal"
+                                            filterDate={(date) => !isDateFull(date)}
+                                            dayClassName={(date) =>
+                                                isDateFull(date)
+                                                    ? 'react-datepicker__day--full-quota'
+                                                    : undefined
+                                            }
                                             className="w-full pl-12 p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#FF7F50] focus:border-transparent outline-none transition-all"
                                         />
                                     </div>
@@ -779,6 +868,12 @@ const BookCamp = () => {
                                             minDate={checkIn ? addDays(toLocalDateOnly(checkIn), 1) : addDays(new Date(), 1)}
                                             dateFormat="dd MMMM yyyy"
                                             placeholderText="Pilih tanggal"
+                                            filterDate={(date) => !isDateFull(date)}
+                                            dayClassName={(date) =>
+                                                isDateFull(date)
+                                                    ? 'react-datepicker__day--full-quota'
+                                                    : undefined
+                                            }
                                             className="w-full pl-12 p-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#FF7F50] focus:border-transparent outline-none transition-all"
                                         />
                                     </div>
@@ -1076,5 +1171,32 @@ const BookCamp = () => {
     </div>
   );
 };
+
+// Styling untuk date picker
+const DatePickerStyles = () => (
+  <style>{`
+    .react-datepicker__day--full-quota {
+      background-color: #fee2e2 !important;
+      color: #ef4444 !important;
+      cursor: not-allowed !important;
+      text-decoration: line-through !important;
+    }
+    .react-datepicker__day--full-quota:hover {
+      background-color: #fecaca !important;
+      color: #dc2626 !important;
+    }
+    .react-datepicker__day--selected {
+      background-color: #FF7F50 !important;
+      color: white !important;
+    }
+  `}</style>
+);
+
+const BookCamp = () => (
+  <>
+    <DatePickerStyles />
+    <BookCampComponent />
+  </>
+);
 
 export default BookCamp;

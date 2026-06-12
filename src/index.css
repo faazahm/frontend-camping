@@ -147,6 +147,32 @@
   color: #4b5563 !important;
 }
 
+/* Tanggal Kuota Penuh */
+.react-datepicker__day--full-quota {
+  background-color: #fee2e2 !important;
+  color: #ef4444 !important;
+  text-decoration: line-through !important;
+  cursor: not-allowed !important;
+  font-weight: 600 !important;
+  border-radius: 0.75rem !important;
+  position: relative;
+}
+
+.react-datepicker__day--full-quota:hover {
+  background-color: #fecaca !important;
+  color: #dc2626 !important;
+}
+
+.dark .react-datepicker__day--full-quota {
+  background-color: #450a0a !important;
+  color: #f87171 !important;
+}
+
+.dark .react-datepicker__day--full-quota:hover {
+  background-color: #7f1d1d !important;
+  color: #fca5a5 !important;
+}
+
 .react-datepicker__navigation {
   top: 1rem !important;
 }

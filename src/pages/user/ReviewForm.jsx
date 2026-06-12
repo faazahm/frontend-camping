@@ -168,45 +168,19 @@ const ReviewForm = () => {
                         {q.question}
                       </label>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        {Array.isArray(q.options) && q.options.length > 0 ? (
-                          q.options.map((option, optIdx) => {
-                            const scores = q.options.length === 5 ? [5, 4, 3, 2, 1] : 
-                                         q.options.length === 3 ? [5, 3, 1] : 
-                                         [5, 4, 3, 2, 1];
-                            const isSelected = answers[q.id] === scores[optIdx];
-
-                            return (
-                              <button
-                                key={optIdx}
-                                type="button"
-                                onClick={() => handleOptionSelect(q.id, optIdx, q.options.length)}
-                                className={`px-4 py-2.5 rounded-xl text-xs font-bold text-left transition-all border-2 ${
-                                  isSelected
-                                    ? 'bg-orange-500 border-orange-500 text-white shadow-lg shadow-orange-500/10'
-                                    : 'bg-gray-50 dark:bg-gray-800 border-transparent text-gray-500 dark:text-gray-400 hover:border-orange-200'
-                                }`}
-                              >
-                                {option}
-                              </button>
-                            );
-                          })
-                        ) : (
-                          <div className="flex gap-2">
-                            {[1, 2, 3, 4, 5].map((star) => (
-                              <button
-                                key={star}
-                                type="button"
-                                onClick={() => setAnswers(prev => ({ ...prev, [q.id]: star }))}
-                                className={`p-2 rounded-lg transition-all ${
-                                  answers[q.id] === star ? 'bg-orange-100 text-orange-600' : 'text-gray-300'
-                                }`}
-                              >
-                                <Star size={20} fill={answers[q.id] === star ? "currentColor" : "none"} />
-                              </button>
-                            ))}
-                          </div>
-                        )}
+                      <div className="flex justify-center gap-2">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button
+                            key={star}
+                            type="button"
+                            onClick={() => setAnswers(prev => ({ ...prev, [q.id]: star }))}
+                            className={`p-3 rounded-xl transition-all ${
+                              answers[q.id] >= star ? 'text-orange-500' : 'text-gray-300'
+                            } hover:text-orange-400`}
+                          >
+                            <Star size={24} fill={answers[q.id] >= star ? "currentColor" : "none"} />
+                          </button>
+                        ))}
                       </div>
                     </div>
                   </div>
