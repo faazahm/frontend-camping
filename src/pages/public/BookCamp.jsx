@@ -61,6 +61,9 @@ const BookCampComponent = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [fullDates, setFullDates] = useState([]); // Tanggal-tanggal yang kuota penuh
   const [loadingFullDates, setLoadingFullDates] = useState(false);
+  const [availabilityData, setAvailabilityData] = useState(null);
+  const [notificationMessage, setNotificationMessage] = useState(null);
+  const [notificationType, setNotificationType] = useState('info'); // 'info', 'success', 'error', 'warning'
 
   // Detail Pembayaran DANA
   const DANA_NUMBER = "083867128869";
@@ -83,6 +86,15 @@ const BookCampComponent = () => {
       fetchFullDates(selectedCamp.id);
     }
   }, [selectedCamp?.id]);
+
+  // Periksa ketersediaan kuota otomatis ketika tanggal atau pengunjung berubah
+  useEffect(() => {
+    if (selectedCamp?.id && checkIn && checkOut && visitors > 0) {
+      checkCampAvailability();
+    } else {
+      setNotificationMessage(null);
+    }
+  }, [selectedCamp?.id, checkIn, checkOut, visitors]);
 
   const fetchFullDates = async (campId) => {
     try {
@@ -150,49 +162,39 @@ const BookCampComponent = () => {
     
     try {
       setIsValidatingQuota(true);
-      const response = await api.get(`/booking/camps/${selectedCamp.id}/availability`, {
+      const response = await api.get(`/booking/availability`, {
         params: {
+          campId: selectedCamp.id,
           startDate: checkIn,
-          endDate: checkOut,
-          peopleCount: visitors
+          endDate: checkOut
         }
       });
       
-      if (response.data?.status === 'full' || response.data?.available === false) {
-        alert(response.data?.message || `Maaf, kuota untuk tanggal tersebut sudah penuh atau melebihi kapasitas.`);
+      const availability = response.data?.availability || [];
+      setAvailabilityData(response.data);
+      
+      // Cek apakah ada tanggal yang kuota penuh
+      const fullDate = availability.find(d => d.remaining - visitors < 0);
+      
+      if (fullDate) {
+        const message = `Kuota penuh pada tanggal ${new Date(fullDate.date).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}. Sisa pengunjung tersedia: ${fullDate.remaining} orang.`;
+        setNotificationMessage(message);
+        setNotificationType('error');
         return false;
       }
+      
+      // Tampilkan info sisa kuota
+      const minRemaining = Math.min(...availability.map(d => d.remaining));
+      const message = `Kuota tersedia: ${minRemaining} orang untuk tanggal yang dipilih.`;
+      setNotificationMessage(message);
+      setNotificationType('info');
+      
       return true;
     } catch (err) {
-      // Jika endpoint check-availability belum ada (404), kita coba panggil POST booking dengan flag validate_only
-      if (err.response?.status === 404) {
-        try {
-          await api.post('/booking', {
-            campId: selectedCamp.id,
-            startDate: checkIn,
-            endDate: checkOut,
-            peopleCount: visitors,
-            equipments: [],
-            validate_only: true // Flag untuk hanya memvalidasi tanpa menyimpan
-          });
-          return true;
-        } catch (postErr) {
-          const msg = postErr.response?.data?.message || postErr.message || "";
-          // Jika pesan mengandung indikasi kuota penuh
-          if (msg.toLowerCase().includes("penuh") || msg.toLowerCase().includes("kapasitas") || msg.toLowerCase().includes("quota") || postErr.response?.status === 400) {
-            alert(msg || "Maaf, kapasitas camping untuk tanggal tersebut sudah penuh.");
-            return false;
-          }
-          return true; // Lanjut jika error lain (misal token)
-        }
-      } else {
-        const msg = err.response?.data?.message || "";
-        if (msg.toLowerCase().includes("penuh") || msg.toLowerCase().includes("kapasitas") || msg.toLowerCase().includes("quota")) {
-          alert(msg);
-          return false;
-        }
-        return true; 
-      }
+      console.error('Check availability error:', err);
+      setNotificationMessage('Gagal memeriksa ketersediaan kuota.');
+      setNotificationType('error');
+      return false;
     } finally {
       setIsValidatingQuota(false);
     }
@@ -816,6 +818,24 @@ const BookCampComponent = () => {
                         </div>
                         
                         <div className="space-y-8">
+                            {/* Notifikasi Ketersediaan Kuota */}
+                            {notificationMessage && (
+                                <div className={`flex items-center gap-2 text-sm px-4 py-3 rounded-xl border ${
+                                    notificationType === 'error' 
+                                        ? 'text-red-700 bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800/30' 
+                                        : notificationType === 'warning'
+                                            ? 'text-amber-700 bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800/30'
+                                            : notificationType === 'success'
+                                                ? 'text-green-700 bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800/30'
+                                                : 'text-blue-700 bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800/30'
+                                }`}>
+                                    {notificationType === 'error' && <Info size={20} />}
+                                    {notificationType === 'warning' && <Info size={20} />}
+                                    {notificationType === 'success' && <Check size={20} />}
+                                    {notificationType === 'info' && <Info size={20} />}
+                                    <span>{notificationMessage}</span>
+                                </div>
+                            )}
                             {/* Keterangan warna tanggal penuh */}
                             {fullDates.length > 0 && (
                                 <div className="flex items-center gap-2 text-xs text-red-500 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/30 rounded-xl px-4 py-3">
